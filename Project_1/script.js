@@ -1,14 +1,41 @@
-function generateTimings(){
+function generateTimings() {
     let uA = [];
-    for(let i = 0; i < 10; i++){
-        let randomNum = Math.random().toFixed(2);
-        if(uA.includes(randomNum)){
+    let uC = [];
+    let lamdaA = 50;
+    let lamdaC = 50;
+    //Generate timings for uA
+    for (let i = 0; i < lamdaA; i++) {
+        let randomNum = Math.random().toFixed(5);
+        if (uA.includes(randomNum)) {
             i--;
-        }else{
+        } else {
             uA[i] = randomNum;
         }
     }
-    for(timing in uA){
+    uA.sort(sortTimings);
+
+    //Generate timings for uC
+    for (let i = 0; i < lamdaC; i++) {
+        let randomNum = Math.random().toFixed(5);
+        if (uC.includes(randomNum)) {
+            i--;
+        } else {
+            uC[i] = randomNum;
+        }
+    }
+    for (timing in uA) {
         console.log(timing + " = " + uA[timing]);
     }
+
+    for (timing in uA) {
+        uA[timing] = (-1 / lamdaA) * Math.log(1 - uA[timing]);
+    }
+
+    for (timing in uA) {
+        console.log(timing + " = " + uA[timing]);
+    }
+}
+
+function sortTimings(a, b) {
+    return a - b;
 }
