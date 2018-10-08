@@ -31,6 +31,10 @@ function generateTimings() {
         uA[timing] = (-1 / lamdaA) * Math.log(1 - uA[timing]);
     }
 
+    for (timing in uC) {
+        uC[timing] = (-1 / lamdaC) * Math.log(1 - uC[timing]);
+    }
+
     for (timing in uA) {
         console.log(timing + " = " + uA[timing]);
     }
