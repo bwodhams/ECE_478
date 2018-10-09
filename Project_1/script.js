@@ -1,11 +1,14 @@
 function generateTimings() {
     let uA = [];
     let uC = [];
+    let xA = [];
+    let xC = [];
+    let slotDuration = 0.000002;
     let lamdaA = 50;
     let lamdaC = 50;
     //Generate timings for uA
     for (let i = 0; i < lamdaA; i++) {
-        let randomNum = Math.random().toFixed(5);
+        let randomNum = Math.random();
         if (uA.includes(randomNum)) {
             i--;
         } else {
@@ -16,27 +19,47 @@ function generateTimings() {
 
     //Generate timings for uC
     for (let i = 0; i < lamdaC; i++) {
-        let randomNum = Math.random().toFixed(5);
+        let randomNum = Math.random();
         if (uC.includes(randomNum)) {
             i--;
         } else {
             uC[i] = randomNum;
         }
     }
-    for (timing in uA) {
-        console.log(timing + " = " + uA[timing]);
-    }
+    uC.sort(sortTimings);
 
+    //Populate xA and xC values into array -> convert packets into slots
     for (timing in uA) {
-        uA[timing] = (-1 / lamdaA) * Math.log(1 - uA[timing]);
+        xA[timing] = ((-1 / lamdaA) * Math.log(1 - uA[timing])) / slotDuration;
     }
 
     for (timing in uC) {
-        uC[timing] = (-1 / lamdaC) * Math.log(1 - uC[timing]);
+        xC[timing] = ((-1 / lamdaC) * Math.log(1 - uC[timing])) / slotDuration;
     }
 
-    for (timing in uA) {
-        console.log(timing + " = " + uA[timing]);
+    //Convert difference in timings to actual slot times
+    for(timing in xA){
+        if(timing == 0){
+
+        }else{
+            xA[timing] = xA[timing] + xA[timing - 1];
+        }  
+    }
+
+    for(timing in xC){
+        if(timing == 0){
+
+        }else{
+            xC[timing] = xC[timing] + xC[timing - 1];
+        }
+    }
+
+    for(timing in xA){
+        console.log(xA[timing]);
+    }
+    console.log("------------------------");
+    for(timing in xC){
+        console.log(xC[timing]);
     }
 }
 
