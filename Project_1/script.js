@@ -63,6 +63,15 @@ function generateTimings() {
     }
 }
 
+function calculate(){
+    
+}
+
+
+
+
+
+
 function sortTimings(a, b) {
     return a - b;
 }
