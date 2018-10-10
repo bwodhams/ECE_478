@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ECE 478 Project 1</title>
+    <script src="script.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
+</head>
+
+<body>
+
+    <h1>ECE 478 Project 1</h1><br>
+    <table>
+        <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+            <th>Parameter</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>Data Frame Size</td>
+            <td><input type="number" id="dataFrameSize" value=1500> bytes</td>
+            <td>ACK, RTS, CTS size</td>
+            <td><input type="number" id="ackRtsCtsSize" value=30> bytes</td>
+        </tr>
+        <tr>
+            <td>Slot Duration</td>
+            <td><input type="number" id="slotDuration" value=20> &micro;s</td>
+            <td>DIFS Duration</td>
+            <td><input type="number" id="difsDuration" value=40> &micro;s</td>
+        </tr>  
+        <tr>
+            <td>SIFS Duration</td>
+            <td><input type="number" id="sifsDuration" value=10> &micro;s</td>
+            <td>Transmission Rate</td>
+            <td><input type="number" id="transmRate" value=6> Mbps</td>
+        </tr>
+        <tr>
+            <td><i>CW</i><sub>0</sub></td>
+            <td><input type="number" id="cw0" value=4> slots</td>
+            <td><i>CW</i><sub>max</sub></td>
+            <td><input type="number" id="cwMax" value=1024> slots</td>
+        </tr>
+        <tr>
+            <td>&lambda;<sub>A</sub> , &lambda;<sub>C</sub></td>
+            <td><input type="number" id="lambdaAC" value=50> frames/sec</td>
+            <td>Simulation Time</td>
+            <td><input type="number" id="simTime" value=10> sec</td>
+        </tr>
+    </table>
+
+    <br><button id="startBtn" onclick="generateTimings()">Start - Check Console</button>
+
+</body>
+
+</html>
