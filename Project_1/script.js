@@ -64,14 +64,12 @@ function generateTimings() {
         }
     }
 
-    //Console log output for testing
+    //Output to table on page
+    let output = '<table><tr><th>Slot Number</th><th>X<sub>a</sub> Slot</th><th>X<sub>c</sub> Slot</th></tr>';
     for(timing in xA){
-        console.log(xA[timing]);
+        output += '<tr><td>' + (timing * 1 + 1) + '</td><td>' + xA[timing] + '</td><td>' + xC[timing] + '</td></tr>';
     }
-    console.log("------------------------");
-    for(timing in xC){
-        console.log(xC[timing]);
-    }
+    document.getElementById("output").innerHTML = output;
 }
 
 function sortTimings(a, b) {
