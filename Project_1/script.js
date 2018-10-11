@@ -119,9 +119,9 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
                 cDone = true;
             }
         }
+        aBackoff = randomBackoff(aBackoffMax);
+        cBackoff = randomBackoff(cBackoffMax);
         if ((aSlots[0] <= currentSlot && cSlots[0] <= currentSlot) && (cDone == false) && (aDone == false)) {
-            aBackoff = randomBackoff(aBackoffMax);
-            cBackoff = randomBackoff(cBackoffMax);
             if (aBackoffMax > cwMax) {
                 aBackoffMax = cw0;
                 aSlots.shift();
@@ -257,8 +257,34 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
             }
         }
 
-        if (sendingA == true || sendingC == true) {
+        if (sendingA == true) {
+            if (cBackoffMax > cwMax) {
+                cBackoffMax = cw0;
+                cCollisions = 0;
+                cSlots.shift();
+                if (cSlots.length == 0) {
+                    cDone = true;
+                }
 
+            }else{
+                cCollisions++;
+            }
+            aCollisions = 0;
+            console.log("-------------------------------------------------------------------------> cBackoffMax =   " + cBackoffMax);
+        } else if(sendingC == true){
+            if (aBackoffMax > cwMax) {
+                aBackoffMax = cw0;
+                aCollisions = 0;
+                aSlots.shift();
+                if (aSlots.length == 0) {
+                    aDone = true;
+                }
+
+            }else{
+                aCollisions++;
+            }
+            cCollisions = 0;
+            console.log("----------------------------------------------------------> aBackoffMax =   " + aBackoffMax);
         } else {
             currentSlot++;
         }
