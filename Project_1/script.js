@@ -10,7 +10,7 @@ function generateTimings() {
     let cwMax = document.getElementById("cwMax").value;
     let lambdaAC = document.getElementById("lambdaAC").value;
     let simTime = document.getElementById("simTime").value;
-    
+
     //Convert everything to be in terms of slots
     let difsToSlots = difsDuration / slotDuration;
     let sifsToSlots = sifsDuration / slotDuration;
@@ -55,76 +55,93 @@ function generateTimings() {
     }
 
     //Convert difference in timings to actual slot times
-    for(timing in xA){
-        if(timing == 0){
+    for (timing in xA) {
+        if (timing == 0) {
 
-        }else{
+        } else {
             xA[timing] = xA[timing] + xA[timing - 1];
-        }  
+        }
     }
 
-    for(timing in xC){
-        if(timing == 0){
+    for (timing in xC) {
+        if (timing == 0) {
 
-        }else{
+        } else {
             xC[timing] = xC[timing] + xC[timing - 1];
         }
     }
 
     //Output to table on page
     let output = '<table><tr><th>Slot Number</th><th>X<sub>A</sub> Slot</th><th>X<sub>C</sub> Slot</th></tr>';
-    for(timing in xA){
+    for (timing in xA) {
         output += '<tr><td>' + (timing * 1 + 1) + '</td><td>' + xA[timing] + '</td><td>' + xC[timing] + '</td></tr>';
     }
     document.getElementById("output").innerHTML = output;
-    calculate(xA, xC, difsToSlots, cw0, cwMax, transmRateToSlots, sifsToSlots, ackToSlots, simTimeToSlots);
+    calculate(xA, xC, parseInt(difsToSlots), parseInt(cw0), parseInt(cwMax), parseInt(transmRateToSlots), parseInt(sifsToSlots), parseInt(ackToSlots), parseInt(simTimeToSlots));
 }
 
 function sortTimings(a, b) {
     return a - b;
 }
 
-function randomBackoff(max){
+function randomBackoff(max) {
     return Math.floor(Math.random() * (max + 1));
 }
 
-function calculate(xA, xC, difs, cw0, cwMax, transSlots, sifs, ackSlots, simTime){
+function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, simTime) {
     let currentSlot = 0;
-    let aSlots = xA;
-    let cSlots = xC;
+    let aSlots = xAIn;
+    let cSlots = xCIn;
     let aBackoffMax = cw0;
-    let cBackoffMax =cw0;
+    let cBackoffMax = cw0;
     let numCollisions = 0;
     let aCollisions = 0;
     let cCollisions = 0;
     let aDone = false;
     let cDone = false;
-    while((currentSlot < simTime) && ((aSlots.length + cSlots.length) > 0)){
+    while ((currentSlot < simTime) && ((aSlots.length + cSlots.length) > 0)) {
         let aBackoff = 0;
         let cBackoff = 0;
         let sendingA = false;
         let sendingC = false;
-        if(aBackoffMax > cwMax){
+        if (aBackoffMax > cwMax) {
             aBackoffMax = cw0;
             aSlots.shift();
+            if (aSlots.length == 0) {
+                aDone = true;
+            }
         }
-        if(cBackoffMax > cwMax){
+        if (cBackoffMax > cwMax) {
             cBackoffMax = cw0;
             cSlots.shift();
+            if (cSlots.length == 0) {
+                cDone = true;
+            }
         }
-        if((aSlots[0] <= currentSlot && cSlots[0] <= currentSlot) && (cDone == false) && (aDone == false)){
+        if ((aSlots[0] <= currentSlot && cSlots[0] <= currentSlot) && (cDone == false) && (aDone == false)) {
             aBackoff = randomBackoff(aBackoffMax);
             cBackoff = randomBackoff(cBackoffMax);
-            console.log("a = " + (aSlots[0] + aBackoff) + " c = " + (cSlots[0] + cBackoff) + " current slot = " + currentSlot);
-            while((aSlots[0] + aBackoff) == (cSlots[0] + cBackoff)){
-                if(aBackoffMax > cwMax){
+            //console.log("aBack = " + aBackoff + " cBack = " + cBackoff);
+            //console.log("aBackMax = " + aBackoffMax + " cBackMax = " + cBackoffMax);
+            //console.log("a = " + (aSlots[0] + aBackoff) + " c = " + (cSlots[0] + cBackoff) + " current slot = " + currentSlot);
+            //console.log("<------------------------------------------------------->");
+            while ((aBackoff) == (cBackoff)) {
+                if (aBackoffMax > cwMax) {
                     aBackoffMax = cw0;
                     aSlots.shift();
-                    
+                    if (aSlots.length == 0) {
+                        aDone = true;
+                        break;
+                    }
+
                 }
-                if(cBackoffMax > cwMax){
+                if (cBackoffMax > cwMax) {
                     cBackoffMax = cw0;
                     cSlots.shift();
+                    if (cSlots.length == 0) {
+                        cDone = true;
+                        break;
+                    }
                 }
                 numCollisions++;
                 aCollisions++;
@@ -133,61 +150,103 @@ function calculate(xA, xC, difs, cw0, cwMax, transSlots, sifs, ackSlots, simTime
                 cBackoffMax = (Math.pow(2, cCollisions) * cBackoffMax) - 1;
                 aBackoff = randomBackoff(aBackoffMax);
                 cBackoff = randomBackoff(cBackoffMax);
-            }   
-        }
-        if(aDone == true){
-            sendingC = true;
-            cBackoffMax = cw0;
-            console.log("sending C of slot : " + cSlots[0] + " at current slot of : " + currentSlot);
-            currentSlot += (difs + cBackoff + transSlots + sifs + ackSlots);
-            cSlots.shift();
-            aBackoffMax = (Math.pow(2, aCollisions) * aBackoffMax) - 1;
-            if(cSlots.length == 0){
-                cDone = true;
+                //console.log("aBack = " + aBackoff + " cBack = " + cBackoff);
+                //console.log("aBackMax = " + aBackoffMax + " cBackMax = " + cBackoffMax);
+                //console.log("a = " + (aSlots[0] + aBackoff) + " c = " + (cSlots[0] + cBackoff) + " current slot = " + currentSlot);
             }
-        }
-        else if(cDone == true){
-            sendingA = true;
-            aBackoffMax = cw0;
-            console.log("sending A of slot : " + aSlots[0] + " at current slot of : " + currentSlot);
-            currentSlot += (difs + aBackoff + transSlots + sifs + ackSlots);
-            aSlots.shift();
-            cBackoffMax = (Math.pow(2, cCollisions) * cBackoffMax) - 1;
-            if(aSlots.length == 0){
-                aDone = true;
+            if (aDone == true) {
+                sendingC = true;
+                cBackoffMax = cw0;
+                console.log("sending C of slot : " + cSlots[0] + " at current slot of : " + currentSlot);
+                currentSlot += Math.ceil((difs + cBackoff + transSlots + sifs + ackSlots));
+                cSlots.shift();
+                if (cSlots.length == 0) {
+                    cDone = true;
+                }
+            } else if (cDone == true) {
+                sendingA = true;
+                aBackoffMax = cw0;
+                console.log("sending A of slot : " + aSlots[0] + " at current slot of : " + currentSlot);
+                currentSlot += Math.ceil((difs + aBackoff + transSlots + sifs + ackSlots));
+                aSlots.shift();
+                if (aSlots.length == 0) {
+                    aDone = true;
+                }
+            } else if ((aBackoff) < (cBackoff)) {
+                sendingA = true;
+                aBackoffMax = cw0;
+                console.log("sending A of slot : " + aSlots[0] + " at current slot of : " + currentSlot);
+                currentSlot += Math.ceil((difs + aBackoff + transSlots + sifs + ackSlots));
+                aSlots.shift();
+                cBackoffMax = (Math.pow(2, cCollisions) * cBackoffMax) - 1;
+                if (aSlots.length == 0) {
+                    aDone = true;
+                }
+            } else {
+                sendingC = true;
+                cBackoffMax = cw0;
+                console.log("sending C of slot : " + cSlots[0] + " at current slot of : " + currentSlot);
+                currentSlot += Math.ceil((difs + cBackoff + transSlots + sifs + ackSlots));
+                cSlots.shift();
+                aBackoffMax = (Math.pow(2, aCollisions) * aBackoffMax) - 1;
+                if (cSlots.length == 0) {
+                    cDone = true;
+                }
             }
-        }
-        else if((aSlots[0] + aBackoff) < (cSlots[0] + cBackoff)){
-            sendingA = true;
-            aBackoffMax = cw0;
-            console.log("sending A of slot : " + aSlots[0] + " at current slot of : " + currentSlot);
-            currentSlot += (difs + aBackoff + transSlots + sifs + ackSlots);
-            aSlots.shift();
-            cBackoffMax = (Math.pow(2, cCollisions) * cBackoffMax) - 1;
-            if(aSlots.length == 0){
-                aDone = true;
-            }
-        }else{
-            sendingC = true;
-            cBackoffMax = cw0;
-            console.log("sending C of slot : " + cSlots[0] + " at current slot of : " + currentSlot);
-            currentSlot += (difs + cBackoff + transSlots + sifs + ackSlots);
-            cSlots.shift();
-            aBackoffMax = (Math.pow(2, aCollisions) * aBackoffMax) - 1;
-            if(cSlots.length == 0){
-                cDone = true;
-            }
-        }
-        if(sendingA == true || sendingC == true){
 
-        }else{
+        } else if ((aSlots[0] <= currentSlot) || (cSlots[0] <= currentSlot)) {
+            if (aDone == true) {
+                sendingC = true;
+                cBackoffMax = cw0;
+                console.log("sending C of slot : " + cSlots[0] + " at current slot of : " + currentSlot);
+                currentSlot += Math.ceil((difs + cBackoff + transSlots + sifs + ackSlots));
+                cSlots.shift();
+                if (cSlots.length == 0) {
+                    cDone = true;
+                }
+            } else if (cDone == true) {
+                sendingA = true;
+                aBackoffMax = cw0;
+                console.log("sending A of slot : " + aSlots[0] + " at current slot of : " + currentSlot);
+                currentSlot += Math.ceil((difs + aBackoff + transSlots + sifs + ackSlots));
+                aSlots.shift();
+                if (aSlots.length == 0) {
+                    aDone = true;
+                }
+            } else if ((aSlots[0] + aBackoff) < (cSlots[0] + cBackoff)) {
+                sendingA = true;
+                aBackoffMax = cw0;
+                console.log("sending A of slot : " + aSlots[0] + " at current slot of : " + currentSlot);
+                currentSlot += Math.ceil((difs + aBackoff + transSlots + sifs + ackSlots));
+                aSlots.shift();
+                cBackoffMax = (Math.pow(2, cCollisions) * cBackoffMax) - 1;
+                if (aSlots.length == 0) {
+                    aDone = true;
+                }
+            } else {
+                sendingC = true;
+                cBackoffMax = cw0;
+                console.log("sending C of slot : " + cSlots[0] + " at current slot of : " + currentSlot);
+                currentSlot += Math.ceil((difs + cBackoff + transSlots + sifs + ackSlots));
+                cSlots.shift();
+                aBackoffMax = (Math.pow(2, aCollisions) * aBackoffMax) - 1;
+                if (cSlots.length == 0) {
+                    cDone = true;
+                }
+            }
+        }
+
+        if (sendingA == true || sendingC == true) {
+
+        } else {
             currentSlot++;
         }
     }
+    console.log("total num collisions : " + numCollisions);
     console.log(aSlots.length);
     console.log(cSlots.length);
 }
 
-function testing(){
+function testing() {
     calculate([0, 1, 2, 3], [4, 5, 6, 7], 1, 2, 3, 4, 5, 6);
 }
