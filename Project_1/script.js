@@ -116,7 +116,7 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
             //console.log("aBackMax = " + aBackoffMax + " cBackMax = " + cBackoffMax);
             //console.log("a = " + (aSlots[0] + aBackoff) + " c = " + (cSlots[0] + cBackoff) + " current slot = " + currentSlot);
             //console.log("<------------------------------------------------------->");
-            while ((aSlots[0] + aBackoff) == (cSlots[0] + cBackoff) && ((aDone == false) && (cDone == false))) {
+            while ((aBackoff) == (cBackoff) && ((aDone == false) && (cDone == false))) {
                 if (aBackoffMax > cwMax) {
                     aBackoffMax = cw0;
                     aSlots.shift();
@@ -210,10 +210,14 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
                 }
             } else if ((aSlots[0] + aBackoff) < (cSlots[0] + cBackoff)) {
                 //TODO: figure out total collision counter for A and C   
+                console.log("in  here 1");
                 sendingA = true;
                 aBackoffMax = cw0;
                 console.log("sending A of slot : " + aSlots[0] + " at current slot of : " + currentSlot);
                 currentSlot += Math.ceil((difs + aBackoff + transSlots + sifs + ackSlots));
+                if((cSlots[0] + cBackoff) < currentSlot){
+                    cTotCollisions++;
+                }
                 console.log("sending A backoff = " + aBackoff);
                 aSlots.shift();
                 cBackoffMax *= 2;
@@ -222,9 +226,13 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
                 }
             } else {
                 sendingC = true;
+                console.log("in here 2");
                 cBackoffMax = cw0;
                 console.log("sending C of slot : " + cSlots[0] + " at current slot of : " + currentSlot);
                 currentSlot += Math.ceil((difs + cBackoff + transSlots + sifs + ackSlots));
+                if((aSlots[0] + aBackoff) < currentSlot){
+                    aTotCollisions++;
+                }
                 console.log("sending C backoff = " + cBackoff);
                 cSlots.shift();
                 aBackoffMax *= 2;
