@@ -308,8 +308,8 @@ let aThroughput = [];
 let cThroughput = [];
 
 function createGraphValues(aThru, cThru){
-    aThroughput.push(aThru);
-    cThroughput.push(cThru);
+    aThroughput.push(aThru / 1000000);
+    cThroughput.push(cThru / 1000000);
     createGraph(aThroughput, cThroughput);
 }
 function createGraph(aVals, cVals) {
@@ -336,7 +336,7 @@ function createGraph(aVals, cVals) {
             responsive: true,
             title: {
                 display: true,
-                text: 'Chart.js Line Chart'
+                text: 'Change in throughput with change of lambda'
             },
             tooltips: {
                 mode: 'index',
@@ -358,7 +358,7 @@ function createGraph(aVals, cVals) {
                     display: true,
                     scaleLabel: {
                         display: true,
-                        labelString: 'Throughput (bps)'
+                        labelString: 'Throughput (Mbps)'
                     }
                 }]
             }
@@ -367,5 +367,8 @@ function createGraph(aVals, cVals) {
     if(currentItteration < 3){
         currentItteration++;
         generateTimings(currentItteration);
+    }else{
+        console.log("a graph points : " + aThroughput)
+        console.log("c graph points : " + cThroughput);
     }
 }
