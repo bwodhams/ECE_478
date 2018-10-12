@@ -1,4 +1,4 @@
-function generateTimings() {
+function generateTimings(itterationNum) {
     //Get user defined values
     let frameSize = document.getElementById("dataFrameSize").value;
     let ackRtsCtsSize = document.getElementById("ackRtsCtsSize").value;
@@ -8,15 +8,18 @@ function generateTimings() {
     let transmRate = document.getElementById("transmRate").value;
     let cw0 = document.getElementById("cw0").value;
     let cwMax = document.getElementById("cwMax").value;
-    let lambdaAC = document.getElementById("lambdaAC").value;
-    let simTime = document.getElementById("simTime").value;
+    //let lambdaAC = document.getElementById("lambdaAC").value;
+    let simTimeSec = document.getElementById("simTime").value;
+
+    let initialLambda = [50, 100, 200, 300];
+    let lambdaAC = initialLambda[itterationNum];
 
     //Convert everything to be in terms of slots
     let difsToSlots = difsDuration / slotDuration;
     let sifsToSlots = sifsDuration / slotDuration;
     let transmRateToSlots = Math.ceil(((frameSize * 8) / (transmRate * 1000000)) * (1 / slotDuration));
     let ackToSlots = Math.ceil(((ackRtsCtsSize * 8) / (transmRate * 1000000)) * (1 / slotDuration));
-    let simTimeToSlots = simTime / slotDuration;
+    let simTimeToSlots = simTimeSec / slotDuration;
 
     //Initialize uA, uC, xA, xC
     let uA = [];
@@ -24,7 +27,7 @@ function generateTimings() {
     let xA = [];
     let xC = [];
     //Generate timings for uA
-    for (let i = 0; i < lambdaAC * simTime; i++) {
+    for (let i = 0; i < lambdaAC * simTimeSec; i++) {
         let randomNum = Math.random();
         if (uA.includes(randomNum)) {
             i--;
@@ -35,7 +38,7 @@ function generateTimings() {
     uA.sort(sortTimings);
 
     //Generate timings for uC
-    for (let i = 0; i < lambdaAC * simTime; i++) {
+    for (let i = 0; i < lambdaAC * simTimeSec; i++) {
         let randomNum = Math.random();
         if (uC.includes(randomNum)) {
             i--;
@@ -77,7 +80,8 @@ function generateTimings() {
         output += '<tr><td>' + (timing * 1 + 1) + '</td><td>' + xA[timing] + '</td><td>' + xC[timing] + '</td></tr>';
     }
     document.getElementById("output").innerHTML = output;
-    calculate(xA, xC, parseInt(difsToSlots), parseInt(cw0), parseInt(cwMax), parseInt(transmRateToSlots), parseInt(sifsToSlots), parseInt(ackToSlots), parseInt(simTimeToSlots));
+    calculate(xA, xC, parseInt(difsToSlots), parseInt(cw0), parseInt(cwMax), parseInt(transmRateToSlots), parseInt(sifsToSlots), parseInt(ackToSlots), parseInt(simTimeToSlots), parseInt(frameSize), parseInt(simTimeSec));
+    //calculate([1], [1], parseInt(difsToSlots), parseInt(cw0), parseInt(cwMax), parseInt(transmRateToSlots), parseInt(sifsToSlots), parseInt(ackToSlots), parseInt(simTimeToSlots));
 }
 
 function sortTimings(a, b) {
@@ -86,9 +90,10 @@ function sortTimings(a, b) {
 
 function randomBackoff(max) {
     return Math.floor(Math.random() * (max + 1));
+    //return prompt("Enter value");
 }
 
-function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, simTime) {
+function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, simTime, frameSizeIn, simTimeSecIn) {
     let currentSlot = 0;
     let aSlots = xAIn;
     let cSlots = xCIn;
@@ -101,9 +106,11 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
     let cTotCollisions = 0;
     let aFailed = 0;
     let cFailed = 0;
+    let aSuccess = 0;
+    let cSuccess = 0;
     let aDone = false;
     let cDone = false;
-    console.log("aBackOffmax type = " + typeof(aBackoffMax) + "  cwMax type = " + typeof(cwMax));
+    console.log("aBackOffmax type = " + typeof (aBackoffMax) + "  cwMax type = " + typeof (cwMax));
     while ((currentSlot < simTime) && ((aSlots.length + cSlots.length) > 0)) {
         let aBackoff = 0;
         let cBackoff = 0;
@@ -208,14 +215,13 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
                 if (aSlots.length == 0) {
                     aDone = true;
                 }
-            } else if ((aSlots[0] + aBackoff) < (cSlots[0] + cBackoff)) {
-                //TODO: figure out total collision counter for A and C   
-                console.log("in  here 1");
+            } else if ((parseInt(aSlots[0]) + parseInt(aBackoff)) < (parseInt(cSlots[0]) + parseInt(cBackoff))) {
+                console.log("aslots + backoff = " + (parseInt(aSlots[0]) + parseInt(aBackoff)) + " cslots + backoff = " + (parseInt(cSlots[0]) + parseInt(cBackoff)));
                 sendingA = true;
                 aBackoffMax = cw0;
                 console.log("sending A of slot : " + aSlots[0] + " at current slot of : " + currentSlot);
                 currentSlot += Math.ceil((difs + aBackoff + transSlots + sifs + ackSlots));
-                if((cSlots[0] + cBackoff) < currentSlot){
+                if ((cSlots[0] + cBackoff) < currentSlot) {
                     cTotCollisions++;
                 }
                 console.log("sending A backoff = " + aBackoff);
@@ -224,13 +230,12 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
                 if (aSlots.length == 0) {
                     aDone = true;
                 }
-            } else {
+            } else if ((parseInt(aSlots[0]) + parseInt(aBackoff)) > (parseInt(cSlots[0]) + parseInt(cBackoff))) {
                 sendingC = true;
-                console.log("in here 2");
                 cBackoffMax = cw0;
                 console.log("sending C of slot : " + cSlots[0] + " at current slot of : " + currentSlot);
                 currentSlot += Math.ceil((difs + cBackoff + transSlots + sifs + ackSlots));
-                if((aSlots[0] + aBackoff) < currentSlot){
+                if ((aSlots[0] + aBackoff) < currentSlot) {
                     aTotCollisions++;
                 }
                 console.log("sending C backoff = " + cBackoff);
@@ -239,10 +244,15 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
                 if (cSlots.length == 0) {
                     cDone = true;
                 }
+            } else {
+                if ((parseInt(aSlots[0]) + parseInt(aBackoff)) == (parseInt(cSlots[0]) + parseInt(cBackoff))) {
+                    numCollisions++;
+                }
             }
         }
 
         if (sendingA == true) {
+            aSuccess++;
             if (cBackoffMax > cwMax) {
                 cBackoffMax = cw0;
                 cCollisions = 0;
@@ -252,12 +262,13 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
                     cDone = true;
                 }
 
-            }else{
+            } else {
                 cCollisions++;
             }
             aCollisions = 0;
             console.log("-------------------------------------------------------------------------> cBackoffMax =   " + cBackoffMax);
-        } else if(sendingC == true){
+        } else if (sendingC == true) {
+            cSuccess++;
             if (aBackoffMax > cwMax) {
                 aBackoffMax = cw0;
                 aCollisions = 0;
@@ -267,7 +278,7 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
                     aDone = true;
                 }
 
-            }else{
+            } else {
                 aCollisions++;
             }
             cCollisions = 0;
@@ -281,9 +292,80 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
     console.log(cSlots.length);
     console.log("current slot = " + currentSlot + " max slots = " + simTime);
     console.log("Failed A Transfers : " + aFailed + " Failed C Transfers : " + cFailed);
+    console.log("Successful A Transfers : " + aSuccess + " Sucessful C Transfers : " + cSuccess);
+    console.log("A bandwidth : " + ((aSuccess * frameSizeIn * 8 / simTimeSecIn)) + "bps   C bandwidth : " + ((cSuccess * frameSizeIn * 8) / simTimeSecIn) + "bps");
     console.log("A Collisions : " + aTotCollisions + "    C Collisions : " + cTotCollisions);
+    createGraphValues(((aSuccess * frameSizeIn * 8 / simTimeSecIn)), ((cSuccess * frameSizeIn * 8) / simTimeSecIn));
 }
 
 function testing() {
     calculate([0, 1, 2, 3], [4, 5, 6, 7], 1, 2, 3, 4, 5, 6);
+}
+
+let currentItteration = 0;
+
+let aThroughput = [];
+let cThroughput = [];
+
+function createGraphValues(aThru, cThru){
+    aThroughput.push(aThru);
+    cThroughput.push(cThru);
+    createGraph(aThroughput, cThroughput);
+}
+function createGraph(aVals, cVals) {
+    var ctx = document.getElementById("myChart").getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ["50", "100", "200", "300"],
+            datasets: [{
+                label: '&lambda;A',
+                backgroundColor: "red",
+                borderColor: "red",
+                data: aVals,
+                fill: false,
+            },{
+                label: '&lambda;C',
+                backgroundColor: "blue",
+                borderColor: "blue",
+                data: cVals,
+                fill: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            title: {
+                display: true,
+                text: 'Chart.js Line Chart'
+            },
+            tooltips: {
+                mode: 'index',
+                intersect: false,
+            },
+            hover: {
+                mode: 'nearest',
+                intersect: true
+            },
+            scales: {
+                xAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Value of &lambda;'
+                    }
+                }],
+                yAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Throughput (bps)'
+                    }
+                }]
+            }
+        }
+    });
+    if(currentItteration < 3){
+        currentItteration++;
+        generateTimings(currentItteration);
+    }
 }

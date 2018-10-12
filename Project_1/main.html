@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>ECE 478 Project 1</title>
     <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
     <link rel="stylesheet" type="text/css" href="styles.css">
 
 </head>
@@ -45,7 +46,7 @@
         </tr>
         <tr>
             <td>&lambda;<sub>A</sub> , &lambda;<sub>C</sub></td>
-            <td><input type="number" id="lambdaAC" value=50> frames/sec</td>
+            <td><input type="text" id="lambdaAC" value="50, 100, 200, 300"> frames/sec</td>
             <td>Simulation Time</td>
             <td><input type="number" id="simTime" value=10> sec</td>
         </tr>
@@ -54,6 +55,10 @@
     <br><button id="startBtn" onclick="generateTimings()">Calculate</button>
     <br><br>
     <button id="testBtn" onclick="testing()">Test button</button><br>
+    <div id="chart" style="width: 50%;">
+        <canvas id="myChart" width="200" height="200"></canvas>
+    </div>
+    
     <div id="output"></div>
 </body>
 
