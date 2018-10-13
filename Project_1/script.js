@@ -1,3 +1,5 @@
+//TO DO : change collision -  CW should only double when A and C have the same backoff. 
+
 function generateTimings(itterationNum) {
     //Get user defined values
     let frameSize = document.getElementById("dataFrameSize").value;
@@ -50,13 +52,15 @@ function generateTimings(itterationNum) {
 
     //Populate xA and xC values into array -> convert packets into slots
     for (timing in uA) {
-        xA[timing] = Math.round(((-1 / lambdaAC) * Math.log(1 - uA[timing])) / slotDuration);
+        xA[timing] = (((-1 / lambdaAC) * Math.log(1 - uA[timing])));
+    }
+    for(timing in xA){
+        xA[timing] = Math.ceil(xA[timing] / slotDuration);
     }
 
     for (timing in uC) {
-        xC[timing] = Math.round(((-1 / lambdaAC) * Math.log(1 - uC[timing])) / slotDuration);
+        xC[timing] = Math.ceil(((-1 / lambdaAC) * Math.log(1 - uC[timing])) / slotDuration);
     }
-
     //Convert difference in timings to actual slot times
     for (timing in xA) {
         if (timing == 0) {
@@ -110,7 +114,7 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
     let cSuccess = 0;
     let aDone = false;
     let cDone = false;
-    console.log("aBackOffmax type = " + typeof (aBackoffMax) + "  cwMax type = " + typeof (cwMax));
+    
     while ((currentSlot < simTime) && ((aSlots.length + cSlots.length) > 0)) {
         let aBackoff = 0;
         let cBackoff = 0;
@@ -141,6 +145,7 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
                         cDone = true;
                     }
                 }
+                currentSlot += difs;
                 numCollisions++;
                 aCollisions++;
                 cCollisions++;
@@ -148,9 +153,9 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
                 cBackoffMax *= 2;
                 aBackoff = randomBackoff(aBackoffMax);
                 cBackoff = randomBackoff(cBackoffMax);
-                //console.log("aBack = " + aBackoff + " cBack = " + cBackoff);
-                //console.log("aBackMax = " + aBackoffMax + " cBackMax = " + cBackoffMax);
-                //console.log("a = " + (aSlots[0] + aBackoff) + " c = " + (cSlots[0] + cBackoff) + " current slot = " + currentSlot);
+                console.log("aBack = " + aBackoff + " cBack = " + cBackoff);
+                console.log("aBackMax = " + aBackoffMax + " cBackMax = " + cBackoffMax);
+                console.log("a = " + (aSlots[0] + aBackoff) + " c = " + (cSlots[0] + cBackoff) + " current slot = " + currentSlot);
             }
             if (aDone == true) {
                 sendingC = true;
@@ -295,9 +300,10 @@ function calculate(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, sim
     console.log("Successful A Transfers : " + aSuccess + " Sucessful C Transfers : " + cSuccess);
     console.log("A bandwidth : " + ((aSuccess * frameSizeIn * 8 / simTimeSecIn)) + "bps   C bandwidth : " + ((cSuccess * frameSizeIn * 8) / simTimeSecIn) + "bps");
     console.log("A Collisions : " + aTotCollisions + "    C Collisions : " + cTotCollisions);
-    createGraphValues(((aSuccess * frameSizeIn * 8 / simTimeSecIn)), ((cSuccess * frameSizeIn * 8) / simTimeSecIn));
+    
+   createGraphValues(((aSuccess * frameSizeIn * 8 / simTimeSecIn)), ((cSuccess * frameSizeIn * 8) / simTimeSecIn));
 }
-
+//Successful transmissions might be only when there isn't a collision
 function testing() {
     calculate([0, 1, 2, 3], [4, 5, 6, 7], 1, 2, 3, 4, 5, 6);
 }
@@ -308,8 +314,8 @@ let aThroughput = [];
 let cThroughput = [];
 
 function createGraphValues(aThru, cThru){
-    aThroughput.push(aThru / 1000000);
-    cThroughput.push(cThru / 1000000);
+    aThroughput.push(aThru / 1000);
+    cThroughput.push(cThru / 1000);
     createGraph(aThroughput, cThroughput);
 }
 function createGraph(aVals, cVals) {
@@ -319,13 +325,13 @@ function createGraph(aVals, cVals) {
         data: {
             labels: ["50", "100", "200", "300"],
             datasets: [{
-                label: '&lambda;A',
+                label: '\u03BB A',
                 backgroundColor: "red",
                 borderColor: "red",
                 data: aVals,
                 fill: false,
             },{
-                label: '&lambda;C',
+                label: '\u03BB C',
                 backgroundColor: "blue",
                 borderColor: "blue",
                 data: cVals,
@@ -336,7 +342,7 @@ function createGraph(aVals, cVals) {
             responsive: true,
             title: {
                 display: true,
-                text: 'Change in throughput with change of lambda'
+                text: 'Change in throughput with change of \u03BB'
             },
             tooltips: {
                 mode: 'index',
@@ -351,14 +357,14 @@ function createGraph(aVals, cVals) {
                     display: true,
                     scaleLabel: {
                         display: true,
-                        labelString: 'Value of &lambda;'
+                        labelString: 'Value of \u03BB'
                     }
                 }],
                 yAxes: [{
                     display: true,
                     scaleLabel: {
                         display: true,
-                        labelString: 'Throughput (Mbps)'
+                        labelString: 'Throughput (Kbps)'
                     }
                 }]
             }
