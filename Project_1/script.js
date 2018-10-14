@@ -84,7 +84,7 @@ function generateTimings(itterationNum) {
         output += '<tr><td>' + (timing * 1 + 1) + '</td><td>' + xA[timing] + '</td><td>' + xC[timing] + '</td></tr>';
     }
     document.getElementById("output").innerHTML = output;
-    calculateProblem1A(xA, xC, parseInt(difsToSlots), parseInt(cw0), parseInt(cwMax), parseInt(transmRateToSlots), parseInt(sifsToSlots), parseInt(ackToSlots), parseInt(simTimeToSlots), parseInt(frameSize), parseInt(simTimeSec));
+    calculateProblem1B(xA, xC, parseInt(difsToSlots), parseInt(cw0), parseInt(cwMax), parseInt(transmRateToSlots), parseInt(sifsToSlots), parseInt(ackToSlots), parseInt(simTimeToSlots), parseInt(frameSize), parseInt(simTimeSec));
     //calculate([1], [1], parseInt(difsToSlots), parseInt(cw0), parseInt(cwMax), parseInt(transmRateToSlots), parseInt(sifsToSlots), parseInt(ackToSlots), parseInt(simTimeToSlots), parseInt(frameSize), parseInt(simTimeSec));
 }
 
@@ -97,8 +97,109 @@ function randomBackoff(max) {
     //return parseInt(prompt("Enter value"));
 }
 
-function calculateProblem1B(){
+function calculateProblem1B(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, simTime, frameSizeIn, simTimeSecIn){
+    let currentSlot = 0;
+    let aSlots = xAIn;
+    let cSlots = xCIn;
+    let aBackoffMax = cw0;
+    let cBackoffMax = cw0;
+    let numCollisions = 0;
+    let aCollisions = 0;
+    let cCollisions = 0;
+    let aTotCollisions = 0;
+    let cTotCollisions = 0;
+    let aFailed = 0;
+    let cFailed = 0;
+    let aSuccess = 0;
+    let cSuccess = 0;
+    let aDone = false;
+    let cDone = false;
+    let allSuccess = 0;
     
+    while ((currentSlot < simTime) && ((aSlots.length + cSlots.length) > 0)) {
+        let aBackoff = 0;
+        let cBackoff = 0;
+        let sendingA = false;
+        let sendingC = false;
+        if(aDone != true){
+            aBackoff = randomBackoff(aBackoffMax);
+        }
+        if(cDone != true){
+            cBackoff = randomBackoff(cBackoffMax);
+        }
+        if((aSlots[0] || cSlots[0]) <= currentSlot){
+            if((aSlots[0] + difs + aBackoff) > (currentSlot + difs + cBackoff + transSlots + sifs + ackSlots)){
+                sendingC = true;
+            }
+            else if((cSlots[0] + difs + cBackoff) > (currentSlot + difs + aBackoff + transSlots + sifs + ackSlots)){
+                sendingA = true;
+            }else{
+                while((sendingA == false && sendingC == false) && (currentSlot < simTime)){
+                    currentSlot += (difs + sifs);
+                    numCollisions++;
+                    aBackoffMax *= 2;
+                    cBackoffMax *= 2;
+                    if (aBackoffMax > cwMax) {
+                        aBackoffMax = cw0;
+                        aSlots.shift();
+                        aFailed++;
+                        if (aSlots.length == 0) {
+                            aDone = true;
+                        }
+    
+                    }
+                    if (cBackoffMax > cwMax) {
+                        cBackoffMax = cw0;
+                        cSlots.shift();
+                        cFailed++;
+                        if (cSlots.length == 0) {
+                            cDone = true;
+                        }
+                    }
+                    aBackoff = randomBackoff(aBackoffMax);
+                    cBackoff = randomBackoff(cBackoffMax);
+                    let aTotal = currentSlot + difs + aBackoff + transSlots + sifs + ackSlots;
+                    let cTotal = currentSlot + difs + cBackoff + transSlots + sifs + ackSlots;
+                    if((aSlots[0] <= currentSlot) && (cSlots[0] <= currentSlot)){
+                        if((currentSlot + difs + aBackoff) > (currentSlot + difs + cBackoff + transSlots + sifs + ackSlots)){
+                            sendingC = true;
+                        }
+                        else if((currentSlot + difs + cBackoff) > (currentSlot + difs + aBackoff + transSlots + sifs + ackSlots)){
+                            sendingA = true;
+                        }
+                    }
+                    else if((aSlots[0] + difs + aBackoff) > (currentSlot + difs + cBackoff + transSlots + sifs + ackSlots)){
+                        sendingC = true;
+                    }
+                    else if((cSlots[0] + difs + cBackoff) > (currentSlot + difs + aBackoff + transSlots + sifs + ackSlots)){
+                        sendingA = true;
+                    }
+                }
+            } 
+        }
+        if(sendingA == true){
+            currentSlot += difs + aBackoff + transSlots + sifs + ackSlots;
+            aBackoffMax = cw0;
+            aSlots.shift();
+            allSuccess++;
+        }else if(sendingC == true){
+            currentSlot += difs + cBackoff + transSlots + sifs + ackSlots;
+            cBackoffMax = cw0;
+            cSlots.shift();
+            allSuccess++;
+        }else{
+            currentSlot++;
+        }
+    }
+    console.log("all success = " + allSuccess);
+    console.log("total num collisions : " + numCollisions);
+    console.log(aSlots.length);
+    console.log(cSlots.length);
+    console.log("current slot = " + currentSlot + " max slots = " + simTime);
+    console.log("Failed A Transfers : " + aFailed + " Failed C Transfers : " + cFailed);
+    console.log("Successful A Transfers : " + (aSuccess) + " Sucessful C Transfers : " + (cSuccess));
+    console.log("A bandwidth : " + ((aSuccess * frameSizeIn * 8 / simTimeSecIn)) + "bps   C bandwidth : " + ((cSuccess * frameSizeIn * 8) / simTimeSecIn) + "bps");
+    console.log("A Collisions : " + aTotCollisions + "    C Collisions : " + cTotCollisions);
 }
 
 function calculateProblem1A(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, simTime, frameSizeIn, simTimeSecIn) {
