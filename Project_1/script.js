@@ -522,7 +522,7 @@ function createGraphValues1A(aThru, cThru){
     cThroughput1A.push(cThru);
     aXVal1A.push(lambdaA[currentItterationA]);
     cXVal1A.push(lambdaC[currentItterationA]);
-    if(currentItterationA < document.getElementById("numOfItterations").value - 1){
+    if(currentItterationA < 3){
         currentItterationA++;
         generateTimingsA(currentItterationA);
     }else{
@@ -538,7 +538,7 @@ function createGraphValues1B(aThru, cThru){
     aXVal1B.push(lambdaA[currentItterationB]);
     cXVal1B.push(lambdaC[currentItterationB]);
     //createGraph(aThroughput1B, cThroughput1B);
-    if(currentItterationB < document.getElementById("numOfItterations").value - 1){
+    if(currentItterationB < 3){
         currentItterationB++;
         generateTimingsB(currentItterationB);
     }else{
@@ -619,10 +619,4 @@ function createGraph(aVals, cVals) {
             }
         }
     });
-    if(currentItteration < document.getElementById("numOfItterations").value - 1){
-        currentItteration++;
-        generateTimings(currentItteration);
-    }else{
-
-    }
 }
