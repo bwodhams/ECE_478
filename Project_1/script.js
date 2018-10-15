@@ -1,7 +1,11 @@
 //Define lambda values globally
 let lambdaA = [100, 200, 400, 600];
 let lambdaC = [50, 100, 200, 300];
-function generateTimings(itterationNum) {
+function begin(){
+    generateTimingsA(0);
+    generateTimingsB(0);
+}
+function generateTimingsA(itterationNum) {
     //Get user defined values
     let frameSize = document.getElementById("dataFrameSize").value;
     let ackRtsCtsSize = document.getElementById("ackRtsCtsSize").value;
@@ -87,6 +91,94 @@ function generateTimings(itterationNum) {
     calculateProblem1A(xA, xC, parseInt(difsToSlots), parseInt(cw0), parseInt(cwMax), parseInt(transmRateToSlots), parseInt(sifsToSlots), parseInt(ackToSlots), parseInt(simTimeToSlots), parseInt(frameSize), parseInt(simTimeSec));
     //calculateProblem1B(xA, xC, parseInt(difsToSlots), parseInt(cw0), parseInt(cwMax), parseInt(transmRateToSlots), parseInt(sifsToSlots), parseInt(ackToSlots), parseInt(simTimeToSlots), parseInt(frameSize), parseInt(simTimeSec));
 }
+
+function generateTimingsB(itterationNum) {
+    //Get user defined values
+    let frameSize = document.getElementById("dataFrameSize").value;
+    let ackRtsCtsSize = document.getElementById("ackRtsCtsSize").value;
+    let slotDuration = document.getElementById("slotDuration").value * 0.000001;
+    let difsDuration = document.getElementById("difsDuration").value * 0.000001;
+    let sifsDuration = document.getElementById("sifsDuration").value * 0.000001;
+    let transmRate = document.getElementById("transmRate").value;
+    let cw0 = document.getElementById("cw0").value;
+    let cwMax = document.getElementById("cwMax").value;
+    let simTimeSec = document.getElementById("simTime").value;
+
+    
+
+    //Convert everything to be in terms of slots
+    let difsToSlots = difsDuration / slotDuration;
+    let sifsToSlots = Math.ceil(sifsDuration / slotDuration);
+    let transmRateToSlots = Math.ceil(((frameSize * 8) / (transmRate * 1000000)) * (1 / slotDuration));
+    let ackToSlots = Math.ceil(((ackRtsCtsSize * 8) / (transmRate * 1000000)) * (1 / slotDuration));
+    let simTimeToSlots = simTimeSec / slotDuration;
+
+    //Initialize uA, uC, xA, xC
+    let uA = [];
+    let uC = [];
+    let xA = [];
+    let xC = [];
+    //Generate timings for uA
+    for (let i = 0; i < lambdaA[itterationNum] * simTimeSec; i++) {
+        let randomNum = Math.random();
+        if (uA.includes(randomNum)) {
+            i--;
+        } else {
+            uA[i] = randomNum;
+        }
+    }
+    uA.sort(sortTimings);
+
+    //Generate timings for uC
+    for (let i = 0; i < lambdaC[itterationNum] * simTimeSec; i++) {
+        let randomNum = Math.random();
+        if (uC.includes(randomNum)) {
+            i--;
+        } else {
+            uC[i] = randomNum;
+        }
+    }
+    uC.sort(sortTimings);
+
+    //Populate xA and xC values into array -> convert packets into slots
+    for (timing in uA) {
+        xA[timing] = (((-1 / lambdaA[itterationNum]) * Math.log(1 - uA[timing])));
+    }
+    for(timing in xA){
+        xA[timing] = Math.ceil(xA[timing] / slotDuration);
+    }
+
+    for (timing in uC) {
+        xC[timing] = Math.ceil(((-1 / lambdaC[itterationNum]) * Math.log(1 - uC[timing])) / slotDuration);
+    }
+    //Convert difference in timings to actual slot times
+    for (timing in xA) {
+        if (timing == 0) {
+
+        } else {
+            xA[timing] = xA[timing] + xA[timing - 1];
+        }
+    }
+
+    for (timing in xC) {
+        if (timing == 0) {
+
+        } else {
+            xC[timing] = xC[timing] + xC[timing - 1];
+        }
+    }
+
+    //Output to table on page
+    let output = '<table><tr><th>Slot Number</th><th>X<sub>A</sub> Slot</th><th>X<sub>C</sub> Slot</th></tr>';
+    for (timing in xA) {
+        output += '<tr><td>' + (timing * 1 + 1) + '</td><td>' + xA[timing] + '</td><td>' + xC[timing] + '</td></tr>';
+    }
+    document.getElementById("output").innerHTML = output;
+    //Call functions to actually generate the simulation.  Uncomment out the problem you want solved, and comment out the other. (if you want to solve 1A, uncomment it, and comment out problem 1B)
+    calculateProblem1B(xA, xC, parseInt(difsToSlots), parseInt(cw0), parseInt(cwMax), parseInt(transmRateToSlots), parseInt(sifsToSlots), parseInt(ackToSlots), parseInt(simTimeToSlots), parseInt(frameSize), parseInt(simTimeSec));
+    //calculateProblem1B(xA, xC, parseInt(difsToSlots), parseInt(cw0), parseInt(cwMax), parseInt(transmRateToSlots), parseInt(sifsToSlots), parseInt(ackToSlots), parseInt(simTimeToSlots), parseInt(frameSize), parseInt(simTimeSec));
+}
+
 
 function calculateProblem1A(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, simTime, frameSizeIn, simTimeSecIn) {
     let currentSlot = 0;
@@ -287,7 +379,7 @@ function calculateProblem1A(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackS
     */
    //Create graph values.  These values MUST be changed for whatever graphs you are trying to graph.
    //createGraphValues1A(((aSuccess * frameSizeIn * 8 / simTimeSecIn)), ((cSuccess * frameSizeIn * 8) / simTimeSecIn));
-   createGraphValues1A(fairnessIndexA, fairnessIndexC);
+   createGraphValues1A(fairnessIndexA, numCollisions);
 }
 
 function calculateProblem1B(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackSlots, simTime, frameSizeIn, simTimeSecIn){
@@ -406,11 +498,13 @@ function calculateProblem1B(xAIn, xCIn, difs, cw0, cwMax, transSlots, sifs, ackS
     */
     //Generate graphs (just as in problem 1A above, you must change these values to whatever graph you are trying to see)
     //createGraphValues1B(numCollisions, numCollisions);
-    createGraphValues1B(fairnessIndexA, fairnessIndexC);
+    createGraphValues1B(fairnessIndexA, numCollisions);
 }
 
 
-let currentItteration = 0;
+let currentItterationA = 0;
+let currentItterationB = 0;
+let problemADone = false;
 
 let aThroughput1A = [];
 let cThroughput1A = [];
@@ -426,18 +520,37 @@ function createGraphValues1A(aThru, cThru){
     //Generate the X and Y values for the graph
     aThroughput1A.push(aThru);
     cThroughput1A.push(cThru);
-    aXVal1A.push(lambdaA[currentItteration]);
-    cXVal1A.push(lambdaC[currentItteration]);
-    createGraph(aThroughput1A, cThroughput1A);
+    aXVal1A.push(lambdaA[currentItterationA]);
+    cXVal1A.push(lambdaC[currentItterationA]);
+    if(currentItterationA < document.getElementById("numOfItterations").value - 1){
+        currentItterationA++;
+        generateTimingsA(currentItterationA);
+    }else{
+        problemADone = true;
+    }
+    //createGraph(aThroughput1A, cThroughput1A);
 }
 
 function createGraphValues1B(aThru, cThru){
     //Generate the X and Y values for the graph
     aThroughput1B.push(aThru);
     cThroughput1B.push(cThru);
-    aXVal1B.push(lambdaA[currentItteration]);
-    cXVal1B.push(lambdaC[currentItteration]);
-    createGraph(aThroughput1B, cThroughput1B);
+    aXVal1B.push(lambdaA[currentItterationB]);
+    cXVal1B.push(lambdaC[currentItterationB]);
+    //createGraph(aThroughput1B, cThroughput1B);
+    if(currentItterationB < document.getElementById("numOfItterations").value - 1){
+        currentItterationB++;
+        generateTimingsB(currentItterationB);
+    }else{
+        function waitFunc() {
+            if (problemADone == false) {
+                setTimeout(waitFunc, 250);
+            } else {
+                createGraph(aThroughput1A, aThroughput1B)
+            }
+        }
+        waitFunc();
+    }
 }
 
 function sortTimings(a, b) {
@@ -461,13 +574,13 @@ function createGraph(aVals, cVals) {
             labels: ["\u03BBA = 100 \u03BBC = 50", "\u03BBA = 200 \u03BBC = 100", "\u03BBA = 400 \u03BBC = 200", "\u03BBA = 600 \u03BBC = 300"],
             //labels: [50, 100, 200, 300],
             datasets: [{
-                label: '\u03BB A',
+                label: '\u03BB Scenario A',
                 backgroundColor: "red",
                 borderColor: "red",
                 data: aVals,
                 fill: false,
             },{
-                label: '\u03BB C',
+                label: '\u03BB Scenario B',
                 backgroundColor: "blue",
                 borderColor: "blue",
                 data: cVals,
@@ -478,7 +591,7 @@ function createGraph(aVals, cVals) {
             responsive: true,
             title: {
                 display: true,
-                text: 'Fairness Index of \u03BB  Scenario 1B -  \u03BB A = 2\u03BB C'
+                text: 'Fairness Index  Scenario A and B -  \u03BB A = 2*\u03BB C'
             },
             tooltips: {
                 mode: 'index',
@@ -493,14 +606,14 @@ function createGraph(aVals, cVals) {
                     display: true,
                     scaleLabel: {
                         display: true,
-                        labelString: 'Value of \u03BB (frames / sec) where \u03BBA = 2\u03BBC'
+                        labelString: 'Value of \u03BB (frames / sec) where \u03BBA = 2*\u03BBC'
                     }
                 }],
                 yAxes: [{
                     display: true,
                     scaleLabel: {
                         display: true,
-                        labelString: 'Fairness Index'
+                        labelString: 'Fairness Index Value'
                     }
                 }]
             }
