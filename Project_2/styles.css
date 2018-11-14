@@ -1,0 +1,16 @@
+input[type=number]{
+    width: 50px;
+}
+table, th, td{
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+td{
+    padding: 5px;
+}
+th{
+    padding: 5px;
+}
+body{
+    background-color: #d8d8d8;
+}
