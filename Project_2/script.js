@@ -70,7 +70,7 @@ function createGraph_1(transit, enterprise, content) {
     });
 }
 
-
+let bin0 = 0;
 let bin1 = 0;
 let bin2_5 = 0;
 let bin5_100 = 0;
@@ -85,6 +85,9 @@ let allp2pNodes = [];
 let p2cDone = false;
 let p2pDone = false;
 let beginTime = 0;
+let allValues = [];
+let allBins = [];
+let largestNum = 0;
 function graph2() {
     beginTime = performance.now();
     let result = null;
@@ -104,19 +107,25 @@ function graph2() {
             p2c.push(result[i]);
         }
     }
+    for(let j = 0; j < p2p.length; j++){
+        allValues.push(parseInt(p2p[j].substring(0, p2p[j].indexOf('|'))));
+        allValues.push(parseInt(p2p[j].substring(p2p[j].indexOf('|') + 1, p2p[j].indexOf('|', p2p[j].indexOf('|') + 1))));
+    }
+    for(let j = 0; j < p2c.length; j++){
+        allValues.push(parseInt(p2c[j].substring(0, p2c[j].indexOf('|'))));
+        allValues.push(parseInt(p2c[j].substring(p2c[j].indexOf('|') + 1, p2c[j].indexOf('|', p2c[j].indexOf('|') + 1))));
+    }
+    allValues.sort(function(a,b){return a - b});
+    largestNum = allValues[allValues.length - 1];
+    for(let k = 0; k < largestNum; k++){
+        allBins.push(0);
+    }
+    console.log("Largest number : " + largestNum);
     console.log("done putting list in p2p and p2c lists");
     graph2_p2c();
-    graph2_p2p();
 }
 
 function graph2_p2p() {
-    console.log("in graph p2p");
-    console.log("still in p2p");
-    let compVals = [];
-    for(let j = 0; j < p2p.length; j++){
-        compVals.push(parseInt((p2p[j].substring(0, p2p[j].indexOf('|', p2p[j].indexOf('|') + 1))).replace('|', '')));
-    }
-    compVals.sort(function(a,b){return a - b});
     for (let i = 0; i < p2p.length; i++) {
         let startIndex = 0;
         let endIndex = p2p[i].indexOf('|', p2p[i].indexOf('|') + 1);
@@ -142,81 +151,59 @@ function graph2_p2p() {
         */
         //p2pReverse.push(p2p[i].substring(p2p[i].indexOf('|') + 1, p2p[i].indexOf('|', p2p[i].indexOf('|') + 1)) + '|' + p2p[i].substring(0, p2p[i].indexOf('|')));
     }
-    console.log("here 1");
     for (let i = 0; i < p2pForward.length; i++) {
-        allp2pNodes.push(p2pForward[i].substring(0, p2pForward[i].indexOf('|')));
-        allp2pNodes.push(p2pForward[i].substring(p2pForward[i].indexOf('|') + 1, p2pForward[i].length));
+        allp2pNodes.push(parseInt(p2pForward[i].substring(0, p2pForward[i].indexOf('|'))));
+        allp2pNodes.push(parseInt(p2pForward[i].substring(p2pForward[i].indexOf('|') + 1, p2pForward[i].length)));
     }
-    console.log("here 2");
+    console.log("Number of p2pNodes = " + allp2pNodes.length);
+    console.log("Number of unique p2p nodes : " + (allp2pNodes.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[])).length);
     for (let j = 0; j < allp2pNodes.length; j++) {
-        allp2pNodes[j] = parseInt(allp2pNodes[j]);
-        if (allp2pNodes[j] == 1) {
-            bin1++;
-        }
-        if (allp2pNodes[j] >= 2 && allp2pNodes[j] < 5) {
-            bin2_5++;
-        }
-        if (allp2pNodes[j] >= 5 && allp2pNodes[j] < 100) {
-            bin5_100++;
-        }
-        if (allp2pNodes[j] >= 100 && allp2pNodes[j] < 200) {
-            bin100_200++;
-        }
-        if (allp2pNodes[j] >= 200 && allp2pNodes[j] < 1000) {
-            bin200_1000++;
-        }
-        if (allp2pNodes[j] >= 1000) {
-            bin1000_++;
-        }
-
+        allBins[allp2pNodes[j]] += 1;
     }
-    console.log("done p2p");
     p2pDone = true;
+    graph2_print();
 }
 
 function graph2_p2c() {
-    console.log("in p2c graph function");
     let currentNodes = [];
     for (let i = 0; i < p2c.length; i++) {
         currentNodes.push(parseInt(p2c[i].substring(0, p2c[i].indexOf('|'))));
         currentNodes.push(parseInt(p2c[i].substring((p2c[i].indexOf('|') + 1), p2c[i].indexOf('|', p2c[i].indexOf('|') + 1))));
     }
-    console.log("done p2c parsing int");
-
-    for (let j = 0; j < currentNodes.length; j++) {
-        if (currentNodes[j] == 1) {
-            bin1++;
-        }
-        if (currentNodes[j] >= 2 && currentNodes[j] < 5) {
-            bin2_5++;
-        }
-        if (currentNodes[j] >= 5 && currentNodes[j] < 100) {
-            bin5_100++;
-        }
-        if (currentNodes[j] >= 100 && currentNodes[j] < 200) {
-            bin100_200++;
-        }
-        if (currentNodes[j] >= 200 && currentNodes[j] < 1000) {
-            bin200_1000++;
-        }
-        if (currentNodes[j] >= 1000) {
-            bin1000_++;
-        }
+    console.log("Number of p2cNodes = " + currentNodes.length);
+    console.log("Number of unique p2c nodes : " + (currentNodes.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[])).length);
+    for(let i = 0; i < currentNodes.length; i++){
+        allBins[currentNodes[i]] += 1;
     }
-    console.log("done p2c");
     p2cDone = true;
 
-    function waitFunc() {
-        if (p2pDone == false) {
-            setTimeout(waitFunc, 500);
-        } else {
-            graph2_print();
-        }
-    }
-    waitFunc();
+    graph2_p2p();
 }
 
 function graph2_print() {
+    for (let j = 0; j < allBins.length; j++) {
+        if(allBins[j] == 0){
+            bin0++;
+        }
+        else if (allBins[j] == 1) {
+            bin1++;
+        }
+        else if (allBins[j] >= 2 && allBins[j] < 5) {
+            bin2_5++;
+        }
+        else if (allBins[j] >= 5 && allBins[j] < 100) {
+            bin5_100++;
+        }
+        else if (allBins[j] >= 100 && allBins[j] < 200) {
+            bin100_200++;
+        }
+        else if (allBins[j] >= 200 && allBins[j] < 1000) {
+            bin200_1000++;
+        }
+        else if (allBins[j] >= 1000) {
+            bin1000_++;
+        }
+    }
     let endTime = performance.now();
     console.log("total time taken = " + ((endTime - beginTime)/1000) + " seconds.");
     console.log("bin 1 = " + bin1);
