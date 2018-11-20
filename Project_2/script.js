@@ -15,6 +15,7 @@ function graph1() {
     numContent = (result.match(/Content/g) || []).length;
     createGraph_1(numTransit, numEnterprise, numContent);
 }
+
 function createGraph_1(transit, enterprise, content) {
     var ctx = document.getElementById("graph1").getContext('2d');
     Chart.defaults.global.plugins.datalabels.font.size = 30;
@@ -88,6 +89,7 @@ let beginTime = 0;
 let allValues = [];
 let allBins = [];
 let largestNum = 0;
+
 function graph2() {
     beginTime = performance.now();
     let result = null;
@@ -107,17 +109,19 @@ function graph2() {
             p2c.push(result[i]);
         }
     }
-    for(let j = 0; j < p2p.length; j++){
+    for (let j = 0; j < p2p.length; j++) {
         allValues.push(parseInt(p2p[j].substring(0, p2p[j].indexOf('|'))));
         allValues.push(parseInt(p2p[j].substring(p2p[j].indexOf('|') + 1, p2p[j].indexOf('|', p2p[j].indexOf('|') + 1))));
     }
-    for(let j = 0; j < p2c.length; j++){
+    for (let j = 0; j < p2c.length; j++) {
         allValues.push(parseInt(p2c[j].substring(0, p2c[j].indexOf('|'))));
         allValues.push(parseInt(p2c[j].substring(p2c[j].indexOf('|') + 1, p2c[j].indexOf('|', p2c[j].indexOf('|') + 1))));
     }
-    allValues.sort(function(a,b){return a - b});
+    allValues.sort(function (a, b) {
+        return a - b
+    });
     largestNum = allValues[allValues.length - 1];
-    for(let k = 0; k < largestNum; k++){
+    for (let k = 0; k < largestNum; k++) {
         allBins.push(0);
     }
     console.log("Largest number : " + largestNum);
@@ -130,7 +134,7 @@ function graph2_p2p() {
         let startIndex = 0;
         let endIndex = p2p[i].indexOf('|', p2p[i].indexOf('|') + 1);
         let reverse = p2p[i].substring(p2p[i].indexOf('|') + 1, p2p[i].indexOf('|', p2p[i].indexOf('|') + 1)) + '|' + p2p[i].substring(0, p2p[i].indexOf('|'));
-        
+
         //now that it's sorted, we will remove bar from p2p forward val, to compare with comp vals and reversed
         //vals.  do fast search to find appropriate value to search for, instead of 
         //linear search.  example, half way through list, see if less than or greater, then halve and h alve
@@ -156,7 +160,10 @@ function graph2_p2p() {
         allp2pNodes.push(parseInt(p2pForward[i].substring(p2pForward[i].indexOf('|') + 1, p2pForward[i].length)));
     }
     console.log("Number of p2pNodes = " + allp2pNodes.length);
-    console.log("Number of unique p2p nodes : " + (allp2pNodes.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[])).length);
+    console.log("Number of unique p2p nodes : " + (allp2pNodes.reduce(function (a, b) {
+        if (a.indexOf(b) < 0) a.push(b);
+        return a;
+    }, [])).length);
     for (let j = 0; j < allp2pNodes.length; j++) {
         allBins[allp2pNodes[j]] += 1;
     }
@@ -171,8 +178,11 @@ function graph2_p2c() {
         currentNodes.push(parseInt(p2c[i].substring((p2c[i].indexOf('|') + 1), p2c[i].indexOf('|', p2c[i].indexOf('|') + 1))));
     }
     console.log("Number of p2cNodes = " + currentNodes.length);
-    console.log("Number of unique p2c nodes : " + (currentNodes.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[])).length);
-    for(let i = 0; i < currentNodes.length; i++){
+    console.log("Number of unique p2c nodes : " + (currentNodes.reduce(function (a, b) {
+        if (a.indexOf(b) < 0) a.push(b);
+        return a;
+    }, [])).length);
+    for (let i = 0; i < currentNodes.length; i++) {
         allBins[currentNodes[i]] += 1;
     }
     p2cDone = true;
@@ -182,30 +192,24 @@ function graph2_p2c() {
 
 function graph2_print() {
     for (let j = 0; j < allBins.length; j++) {
-        if(allBins[j] == 0){
+        if (allBins[j] == 0) {
             bin0++;
-        }
-        else if (allBins[j] == 1) {
+        } else if (allBins[j] == 1) {
             bin1++;
-        }
-        else if (allBins[j] >= 2 && allBins[j] < 5) {
+        } else if (allBins[j] >= 2 && allBins[j] < 5) {
             bin2_5++;
-        }
-        else if (allBins[j] >= 5 && allBins[j] < 100) {
+        } else if (allBins[j] >= 5 && allBins[j] < 100) {
             bin5_100++;
-        }
-        else if (allBins[j] >= 100 && allBins[j] < 200) {
+        } else if (allBins[j] >= 100 && allBins[j] < 200) {
             bin100_200++;
-        }
-        else if (allBins[j] >= 200 && allBins[j] < 1000) {
+        } else if (allBins[j] >= 200 && allBins[j] < 1000) {
             bin200_1000++;
-        }
-        else if (allBins[j] >= 1000) {
+        } else if (allBins[j] >= 1000) {
             bin1000_++;
         }
     }
     let endTime = performance.now();
-    console.log("total time taken = " + ((endTime - beginTime)/1000) + " seconds.");
+    console.log("total time taken = " + ((endTime - beginTime) / 1000) + " seconds.");
     console.log("bin 1 = " + bin1);
     console.log("bin 2 - 5 = " + bin2_5);
     console.log("bin 5 - 100 = " + bin5_100);
@@ -242,15 +246,15 @@ function createGraph_2(bin1, bin2_5, bin5_100, bin100_200, bin200_1000, bin1000_
             display: true,
             text: 'AS Node Degree Distribution'
         },
-        scales:{
+        scales: {
             yAxes: [{
                 ticks: {
                     min: 0,
-                    max: 8602,
+                    max: 28018,
                 }
             }]
         }
-        
+
     };
 
 
@@ -262,4 +266,108 @@ function createGraph_2(bin1, bin2_5, bin5_100, bin100_200, bin200_1000, bin1000_
         },
         options: options
     });
+}
+
+
+function graph3() {
+    let allAs = [];
+    var result = [];
+    let alteredResult = [];
+    let allIPSpace = [];
+    let allInfo = [];
+    /*
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", "input_2.3.txt", false);
+    xmlhttp.send();
+    if (xmlhttp.status == 200) {
+        result = xmlhttp.responseText.split('\n');
+    }
+    */
+    result.push("2.2.2.2 24 100,300,400");
+    for (let i = 0; i < result.length; i++) {
+        result[i] = result[i].replace(/\s+/g, '|');
+    }
+    for (let i = 0; i < result.length; i++) {
+        let initialStartIndex = result[i].indexOf('|', result[i].indexOf('|') + 1) + 1;
+        let initialStartIndex2 = result[i].indexOf('|', result[i].indexOf('|') + 2) + 1;
+        let initialEndIndex = result[i].length;
+        let startIndex = initialStartIndex;
+        let endIndex = initialEndIndex;
+        if (result[i].substring(startIndex, endIndex).indexOf("_") > -1 || result[i].substring(startIndex, endIndex).indexOf(',') > -1) {
+            console.log("in here first");
+            if (result[i].substring(startIndex, endIndex).indexOf(',') > -1) {
+                console.log("in here second");
+                console.log("char = " + result[i].charAt(result[i].substring(initialStartIndex2).search(/\D/) + initialStartIndex2));
+                if (result[i].charAt(result[i].substring(initialStartIndex2).search(/\D/) + initialStartIndex2) == ',') {
+                    console.log("in here");
+                    console.log("j = " + parseInt(result[i].substring(initialStartIndex2, result[i].indexOf(','))));
+                    console.log("j max = " + parseInt(result[i].substring(result[i].indexOf(',') + 1, result[i].substring(result[i].indexOf(',') + 1).search(/\D/) + result[i].indexOf(',') + 1)));
+                    for (let j = parseInt(result[i].substring(initialStartIndex2, result[i].indexOf(','))); j <= parseInt(result[i].substring(result[i].indexOf(',') + 1, result[i].substring(result[i].indexOf(',') + 1).search(/\D/) + result[i].indexOf(',') + 1)); j++) {
+                        allAs.push(j);
+                        allInfo.push(j + "." + result[i].substr(result[i].indexOf('|') + 1, 2));
+                    }
+                }
+            } else {
+                alteredResult[i] = result[i].substring(startIndex, endIndex);
+                let numInstances = (alteredResult[i].match(/_/g) || []).length + 1;
+                for (let j = 0; j < numInstances; j++) {
+                    startIndex = 0;
+                    if ((j + 2) > numInstances) {
+                        endIndex = alteredResult[i].length;
+                    } else {
+                        endIndex = alteredResult[i].indexOf('_');
+                    }
+                    allAs.push(alteredResult[i].substring(startIndex, endIndex));
+                    allInfo.push(alteredResult[i].substring(startIndex, endIndex) + "." + result[i].substr(result[i].indexOf('|') + 1, 2));
+                    alteredResult[i] = alteredResult[i].substring(endIndex + 1, alteredResult[i].length);
+                }
+            }
+
+        } else {
+            allAs.push(result[i].substring(startIndex, endIndex));
+            allInfo.push(result[i].substring(result[i].indexOf('|', result[i].indexOf('|') + 2) + 1, initialEndIndex) + "." + result[i].substr(result[i].indexOf('|') + 1, 2));
+        }
+    }
+    for (let i = 0; i < allInfo.length; i++) {
+        if (allInfo[i].indexOf("|") > -1) {
+            allInfo[i] = allInfo[i].substring(0, allInfo[i].length - 1);
+        }
+        allInfo[i] = parseFloat(allInfo[i]);
+    }
+    allInfo.sort(function (a, b) {
+        return a - b
+    });
+    for (let i = 0; i < allInfo.length; i++) {
+        allInfo[i] = allInfo[i].toString();
+    }
+    let totalNum = 0;
+    for (let i = 0; i < allInfo.length; i++) {
+        if (i == 0) {
+            totalNum += Math.pow(2, 32 - parseInt(allInfo[i].substring(allInfo[i].indexOf('.') + 1, allInfo[i].length)));
+        } else {
+            if (allInfo[i].substring(0, allInfo[i].indexOf('.')) == allInfo[i - 1].substring(0, allInfo[i - 1].indexOf('.'))) {
+                totalNum += Math.pow(2, 32 - parseInt(allInfo[i].substring(allInfo[i].indexOf('.') + 1, allInfo[i].length)));
+                if (i == (allInfo.length - 1)) {
+                    allIPSpace.push(totalNum);
+                    totalNum = 0;
+                }
+            } else {
+                allIPSpace.push(totalNum);
+                totalNum = 0;
+                totalNum += Math.pow(2, 32 - parseInt(allInfo[i].substring(allInfo[i].indexOf('.') + 1, allInfo[i].length)));
+                if (totalNum == -1) {
+                    console.log(allInfo[i]);
+                }
+            }
+        }
+    }
+    console.log("total IP space = " + allIPSpace.length);
+    allIPSpace.sort(function (a, b) {
+        return a - b
+    });
+    console.log("largest IP space = " + allIPSpace[allIPSpace.length - 1]);
+    console.log("smallest IP space = " + allIPSpace[1]);
+    for(let i = 0; i < allAs.length; i++){
+        console.log(allAs[i]);
+    }
 }
