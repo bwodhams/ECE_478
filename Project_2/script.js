@@ -271,22 +271,22 @@ function createGraph_2(bin1, bin2_5, bin5_100, bin100_200, bin200_1000, bin1000_
 
 function graph3() {
     let allAs = [];
-    var result = [];
+    let allInfoSets = [];
+    let allInfoSetsUnique = [];
+    var result = null;
     let alteredResult = [];
     let allIPSpace = [];
     let allInfo = [];
-    /*
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("GET", "input_2.3.txt", false);
     xmlhttp.send();
     if (xmlhttp.status == 200) {
         result = xmlhttp.responseText.split('\n');
     }
-    */
-    result.push("2.2.2.2 24 100,300,400");
     for (let i = 0; i < result.length; i++) {
         result[i] = result[i].replace(/\s+/g, '|');
     }
+    console.log("in here now 1");
     for (let i = 0; i < result.length; i++) {
         let initialStartIndex = result[i].indexOf('|', result[i].indexOf('|') + 1) + 1;
         let initialStartIndex2 = result[i].indexOf('|', result[i].indexOf('|') + 2) + 1;
@@ -294,19 +294,31 @@ function graph3() {
         let startIndex = initialStartIndex;
         let endIndex = initialEndIndex;
         if (result[i].substring(startIndex, endIndex).indexOf("_") > -1 || result[i].substring(startIndex, endIndex).indexOf(',') > -1) {
-            console.log("in here first");
             if (result[i].substring(startIndex, endIndex).indexOf(',') > -1) {
-                console.log("in here second");
-                console.log("char = " + result[i].charAt(result[i].substring(initialStartIndex2).search(/\D/) + initialStartIndex2));
-                if (result[i].charAt(result[i].substring(initialStartIndex2).search(/\D/) + initialStartIndex2) == ',') {
-                    console.log("in here");
-                    console.log("j = " + parseInt(result[i].substring(initialStartIndex2, result[i].indexOf(','))));
-                    console.log("j max = " + parseInt(result[i].substring(result[i].indexOf(',') + 1, result[i].substring(result[i].indexOf(',') + 1).search(/\D/) + result[i].indexOf(',') + 1)));
-                    for (let j = parseInt(result[i].substring(initialStartIndex2, result[i].indexOf(','))); j <= parseInt(result[i].substring(result[i].indexOf(',') + 1, result[i].substring(result[i].indexOf(',') + 1).search(/\D/) + result[i].indexOf(',') + 1)); j++) {
-                        allAs.push(j);
-                        allInfo.push(j + "." + result[i].substr(result[i].indexOf('|') + 1, 2));
+                let prefixNum = result[i].substr(result[i].indexOf('|') + 1, 2);
+                result[i] = result[i].substring(initialStartIndex2, result[i].length) + '|';
+                while (result[i].indexOf(',') > -1 || result[i].indexOf('_') > -1) {
+                    if (result[i].charAt(result[i].substring(0).search(/\D/)) == ',') {
+                        for (let j = parseInt(result[i].substring(0, result[i].indexOf(','))); j <= parseInt(result[i].substring(result[i].indexOf(',') + 1, result[i].substring(result[i].indexOf(',') + 1).search(/\D/) + result[i].indexOf(',') + 1)); j++) {
+                            allInfoSets.push(j + "." + prefixNum);
+                        }
+                        result[i] = result[i].substring(result[i].indexOf(',') + 1, result[i].length);
+                    } else if (result[i].charAt(result[i].substring(0).search(/\D/)) == '_') {
+                        allInfoSets.push(result[i].substring(0, result[i].indexOf('_')) + '.' + prefixNum);
+                        allInfoSets.push(result[i].substring(result[i].indexOf('_') + 1, result[i].substring(result[i].indexOf('_') + 1).search(/\D/) + result[i].indexOf('_') + 1) + '.' + prefixNum);
+                        result[i] = result[i].substring(result[i].indexOf('_') + 1, result[i].length);
                     }
                 }
+                allInfoSetsUnique = allInfoSets.reduce(function (a, b) {
+                    if (a.indexOf(b) < 0) a.push(b);
+                    return a;
+                }, []);
+                for (let k = 0; k < allInfoSetsUnique.length; k++) {
+                    allInfo.push(allInfoSetsUnique[k]);
+                }
+                allInfoSetsUnique = [];
+                allInfoSets = [];
+
             } else {
                 alteredResult[i] = result[i].substring(startIndex, endIndex);
                 let numInstances = (alteredResult[i].match(/_/g) || []).length + 1;
@@ -328,18 +340,21 @@ function graph3() {
             allInfo.push(result[i].substring(result[i].indexOf('|', result[i].indexOf('|') + 2) + 1, initialEndIndex) + "." + result[i].substr(result[i].indexOf('|') + 1, 2));
         }
     }
+    console.log("in here now 2");
     for (let i = 0; i < allInfo.length; i++) {
         if (allInfo[i].indexOf("|") > -1) {
             allInfo[i] = allInfo[i].substring(0, allInfo[i].length - 1);
         }
         allInfo[i] = parseFloat(allInfo[i]);
     }
+    console.log("in here now 3");
     allInfo.sort(function (a, b) {
         return a - b
     });
     for (let i = 0; i < allInfo.length; i++) {
         allInfo[i] = allInfo[i].toString();
     }
+    console.log("in here now 4");
     let totalNum = 0;
     for (let i = 0; i < allInfo.length; i++) {
         if (i == 0) {
@@ -355,10 +370,10 @@ function graph3() {
                 allIPSpace.push(totalNum);
                 totalNum = 0;
                 totalNum += Math.pow(2, 32 - parseInt(allInfo[i].substring(allInfo[i].indexOf('.') + 1, allInfo[i].length)));
-                if (totalNum == -1) {
-                    console.log(allInfo[i]);
-                }
             }
+        }
+        if (i == allInfo.length - 1) {
+            allIPSpace.push(totalNum);
         }
     }
     console.log("total IP space = " + allIPSpace.length);
@@ -366,8 +381,5 @@ function graph3() {
         return a - b
     });
     console.log("largest IP space = " + allIPSpace[allIPSpace.length - 1]);
-    console.log("smallest IP space = " + allIPSpace[1]);
-    for(let i = 0; i < allAs.length; i++){
-        console.log(allAs[i]);
-    }
+    console.log("smallest IP space = " + allIPSpace[0]);
 }
